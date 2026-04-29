@@ -1,6 +1,4 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import { AuthProvider } from "@/hooks/useAuth";
-import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 
@@ -31,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "THEPT — There's parking there?" },
-      { name: "description", content: "Encontre vagas de estacionamento perto de você. Reserve, pague e estacione sem stress." },
-      { name: "author", content: "THEPT" },
-      { property: "og:title", content: "THEPT — Encontre vagas em segundos" },
-      { property: "og:description", content: "Busque vagas, reserve e pague pela carteira digital." },
+      { title: "THEPT" },
+      { name: "description", content: "Tem Vaga Lá? – A solução inteligente para você nunca mais perder tempo procurando estacionamento. Localize vagas em tempo real e reserve seu lugar com apenas al" },
+      { name: "author", content: "Lovable" },
+      { property: "og:title", content: "THEPT" },
+      { property: "og:description", content: "Tem Vaga Lá? – A solução inteligente para você nunca mais perder tempo procurando estacionamento. Localize vagas em tempo real e reserve seu lugar com apenas al" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "THEPT" },
+      { name: "twitter:description", content: "Tem Vaga Lá? – A solução inteligente para você nunca mais perder tempo procurando estacionamento. Localize vagas em tempo real e reserve seu lugar com apenas al" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8fb83c4f-547f-43cd-ae32-9efd7905dc1c/id-preview-79ad1af8--721965ad-06d7-4bec-95a7-8b65c81686ae.lovable.app-1777425076766.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8fb83c4f-547f-43cd-ae32-9efd7905dc1c/id-preview-79ad1af8--721965ad-06d7-4bec-95a7-8b65c81686ae.lovable.app-1777425076766.png" },
     ],
     links: [
       {
@@ -67,10 +69,5 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return (
-    <AuthProvider>
-      <Outlet />
-      <Toaster />
-    </AuthProvider>
-  );
+  return <Outlet />;
 }
