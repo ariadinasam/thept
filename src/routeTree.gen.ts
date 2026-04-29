@@ -10,8 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as PartnerRouteImport } from './routes/partner'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocationIdRouteImport } from './routes/location.$id'
@@ -19,6 +22,11 @@ import { Route as LocationIdRouteImport } from './routes/location.$id'
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -29,6 +37,16 @@ const ProfileRoute = ProfileRouteImport.update({
 const PartnersRoute = PartnersRouteImport.update({
   id: '/partners',
   path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerRoute = PartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -50,16 +68,22 @@ const LocationIdRoute = LocationIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/partner': typeof PartnerRoute
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/wallet': typeof WalletRoute
   '/location/$id': typeof LocationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/partner': typeof PartnerRoute
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/wallet': typeof WalletRoute
   '/location/$id': typeof LocationIdRoute
 }
@@ -67,8 +91,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/partner': typeof PartnerRoute
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/wallet': typeof WalletRoute
   '/location/$id': typeof LocationIdRoute
 }
@@ -77,18 +104,33 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/contact'
+    | '/partner'
     | '/partners'
     | '/profile'
+    | '/saved'
     | '/wallet'
     | '/location/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/partners' | '/profile' | '/wallet' | '/location/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/contact'
+    | '/partner'
+    | '/partners'
+    | '/profile'
+    | '/saved'
+    | '/wallet'
+    | '/location/$id'
   id:
     | '__root__'
     | '/'
     | '/auth'
+    | '/contact'
+    | '/partner'
     | '/partners'
     | '/profile'
+    | '/saved'
     | '/wallet'
     | '/location/$id'
   fileRoutesById: FileRoutesById
@@ -96,8 +138,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  ContactRoute: typeof ContactRoute
+  PartnerRoute: typeof PartnerRoute
   PartnersRoute: typeof PartnersRoute
   ProfileRoute: typeof ProfileRoute
+  SavedRoute: typeof SavedRoute
   WalletRoute: typeof WalletRoute
   LocationIdRoute: typeof LocationIdRoute
 }
@@ -109,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -123,6 +175,20 @@ declare module '@tanstack/react-router' {
       path: '/partners'
       fullPath: '/partners'
       preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner': {
+      id: '/partner'
+      path: '/partner'
+      fullPath: '/partner'
+      preLoaderRoute: typeof PartnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -152,8 +218,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  ContactRoute: ContactRoute,
+  PartnerRoute: PartnerRoute,
   PartnersRoute: PartnersRoute,
   ProfileRoute: ProfileRoute,
+  SavedRoute: SavedRoute,
   WalletRoute: WalletRoute,
   LocationIdRoute: LocationIdRoute,
 }
