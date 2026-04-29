@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { geocodeCep, geocodeText, isCep, type GeocodeResult, gpsLinks } from "@/lib/geocode";
+import { geocodeCep, geocodeText, isCep, getBrowserLocation, type GeocodeResult, gpsLinks } from "@/lib/geocode";
 import { availabilityStatus } from "@/lib/categories";
 import { toast } from "sonner";
 
