@@ -35,10 +35,11 @@ function fetchToken() {
   return tokenPromise;
 }
 
-export function ParkingMap({ markers, center, onMarkerClick, className }: Props) {
+export function ParkingMap({ markers, center, searchPin, onMarkerClick, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const searchPinRef = useRef<mapboxgl.Marker | null>(null);
   const clickRef = useRef(onMarkerClick);
   const [token, setToken] = useState<string>("");
   const [error, setError] = useState<string>("");
