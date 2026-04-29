@@ -14,7 +14,211 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      parking_locations: {
+        Row: {
+          address: string
+          available_spots: number
+          category: string
+          created_at: string
+          has_special_spots: boolean
+          id: string
+          image_url: string | null
+          latitude: number
+          longitude: number
+          name: string
+          price_per_hour: number
+          rating: number | null
+          total_spots: number
+        }
+        Insert: {
+          address: string
+          available_spots?: number
+          category?: string
+          created_at?: string
+          has_special_spots?: boolean
+          id?: string
+          image_url?: string | null
+          latitude: number
+          longitude: number
+          name: string
+          price_per_hour?: number
+          rating?: number | null
+          total_spots?: number
+        }
+        Update: {
+          address?: string
+          available_spots?: number
+          category?: string
+          created_at?: string
+          has_special_spots?: boolean
+          id?: string
+          image_url?: string | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          price_per_hour?: number
+          rating?: number | null
+          total_spots?: number
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          card_brand: string
+          cardholder_name: string
+          created_at: string
+          expiry: string
+          id: string
+          is_default: boolean
+          last_four: string
+          user_id: string
+        }
+        Insert: {
+          card_brand: string
+          cardholder_name: string
+          created_at?: string
+          expiry: string
+          id?: string
+          is_default?: boolean
+          last_four: string
+          user_id: string
+        }
+        Update: {
+          card_brand?: string
+          cardholder_name?: string
+          created_at?: string
+          expiry?: string
+          id?: string
+          is_default?: boolean
+          last_four?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          car_model: string | null
+          car_plate: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          special_permissions: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          car_model?: string | null
+          car_plate?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          special_permissions?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          car_model?: string | null
+          car_plate?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          special_permissions?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          duration_hours: number
+          id: string
+          location_id: string
+          start_time: string
+          status: string
+          total_price: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_hours?: number
+          id?: string
+          location_id: string
+          start_time: string
+          status?: string
+          total_price: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_hours?: number
+          id?: string
+          location_id?: string
+          start_time?: string
+          status?: string
+          total_price?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "parking_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_locations: {
+        Row: {
+          created_at: string
+          id: string
+          location_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "parking_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
