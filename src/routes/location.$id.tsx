@@ -166,12 +166,12 @@ function LocationDetail() {
                 </DialogContent>
               </Dialog>
 
-              <a href={wazeUrl} target="_blank" rel="noreferrer" className="sm:flex-1">
-                <Button variant="outline" className="w-full" size="lg"><Navigation className="h-4 w-4" /> Waze</Button>
-              </a>
-              <a href={gmapsUrl} target="_blank" rel="noreferrer" className="sm:flex-1">
-                <Button variant="outline" className="w-full" size="lg"><MapPin className="h-4 w-4" /> Google Maps</Button>
-              </a>
+              <Button type="button" variant="outline" className="sm:flex-1" size="lg" onClick={() => openGps(links.waze)}>
+                <Navigation className="h-4 w-4" /> Waze
+              </Button>
+              <Button type="button" variant="outline" className="sm:flex-1" size="lg" onClick={() => openGps(links.gmapsSearch)}>
+                <MapPin className="h-4 w-4" /> Google Maps
+              </Button>
             </div>
           </div>
 
@@ -182,6 +182,7 @@ function LocationDetail() {
           />
         </div>
       </section>
+      <Footer />
     </div>
   );
 }
