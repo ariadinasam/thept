@@ -170,32 +170,41 @@ function HomePage() {
           onMarkerClick={(id) => nav({ to: "/location/$id", params: { id } })}
         />
 
-        {/* Searched address card */}
+        {/* Searched address card — clickable, opens detailed search result */}
         {searchHit && (
-          <Card className="mt-6 border-primary/30 bg-primary/5 p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <MapPin className="h-5 w-5" />
+          <Link
+            to="/search"
+            search={{
+              q: query,
+              lat: searchHit.latitude,
+              lng: searchHit.longitude,
+              name: searchHit.name,
+              address: searchHit.address,
+            }}
+            className="group mt-6 block"
+          >
+            <Card className="border-primary/30 bg-primary/5 p-5 transition-all hover:border-primary/60 hover:shadow-glow">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs uppercase tracking-wide text-primary">Endereço buscado · toque para ver vagas</div>
+                  <div className="font-display text-base font-semibold">{searchHit.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">{searchHit.address}</div>
+                </div>
+                <Navigation className="h-5 w-5 text-primary transition-transform group-hover:translate-x-1" />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs uppercase tracking-wide text-primary">Endereço buscado</div>
-                <div className="font-display text-base font-semibold">{searchHit.name}</div>
-                <div className="text-xs text-muted-foreground">{searchHit.address}</div>
+              <div className="mt-3 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  {searchHit.nearby.length > 0
+                    ? `${searchHit.nearby.length} estacionamentos próximos`
+                    : "Sem parceiros próximos cadastrados"}
+                </span>
+                <span className="font-semibold text-primary">Ver vagas e reservar →</span>
               </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button asChild size="sm" variant="outline" className="flex-1 min-w-[140px]">
-                <a href={gpsLinks(searchHit.latitude, searchHit.longitude, searchHit.name).waze} target="_blank" rel="noopener noreferrer">
-                  <Navigation className="h-4 w-4" /> Abrir no Waze
-                </a>
-              </Button>
-              <Button asChild size="sm" variant="outline" className="flex-1 min-w-[140px]">
-                <a href={gpsLinks(searchHit.latitude, searchHit.longitude, searchHit.name).gmapsSearch} target="_blank" rel="noopener noreferrer">
-                  <Navigation className="h-4 w-4" /> Google Maps
-                </a>
-              </Button>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         )}
 
         {/* Partners list (below the map) */}
