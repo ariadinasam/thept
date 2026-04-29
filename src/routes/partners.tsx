@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { LocationCard, type ParkingItem } from "@/components/LocationCard";
 import { CATEGORIES } from "@/lib/categories";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,6 +70,7 @@ function PartnersPage() {
           {filtered.map((it) => <LocationCard key={it.id} item={it} />)}
         </div>
       </section>
+      <Footer />
     </div>
   );
 }
