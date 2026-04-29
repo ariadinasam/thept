@@ -160,26 +160,128 @@ function WalletPage() {
               </div>
               <div className="mt-2 font-display text-4xl font-bold">R$ {balance.toFixed(2)}</div>
             </div>
-            <Dialog open={topupOpen} onOpenChange={setTopupOpen}>
+            <Dialog open={topupOpen} onOpenChange={(o) => { setTopupOpen(o); if (!o) resetTopup(); }}>
               <DialogTrigger asChild>
                 <Button variant="secondary" className="bg-background/20 text-primary-foreground hover:bg-background/30">
                   <Plus className="h-4 w-4" /> Recarregar
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Recarregar carteira</DialogTitle></DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Valor</Label>
-                    <Input type="number" value={topupAmount} onChange={(e) => setTopupAmount(e.target.value)} />
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>
+                    {payStep === "select" && "Recarregar carteira"}
+                    {payStep === "processing" && "Processando pagamento"}
+                    {payStep === "pix" && "Pagar com PIX"}
+                    {payStep === "paypal" && "Pagar com PayPal"}
+                  </DialogTitle>
+                </DialogHeader>
+
+                {payStep === "select" && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Valor</Label>
+                      <Input type="number" value={topupAmount} onChange={(e) => setTopupAmount(e.target.value)} />
+                      <div className="mt-2 flex gap-2">
+                        {[20, 50, 100, 200].map((v) => (
+                          <Button key={v} type="button" variant="outline" size="sm" onClick={() => setTopupAmount(String(v))}>R${v}</Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="mb-2 block">Forma de pagamento</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {([
+                          { id: "pix", label: "PIX", icon: QrCode },
+                          { id: "credit", label: "Crédito", icon: CreditCard },
+                          { id: "debit", label: "Débito", icon: Banknote },
+                          { id: "paypal", label: "PayPal", icon: Wallet },
+                        ] as const).map((m) => {
+                          const Icon = m.icon;
+                          const active = payMethod === m.id;
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => setPayMethod(m.id)}
+                              className={`flex items-center gap-2 rounded-xl border p-3 text-sm transition-colors ${active ? "border-primary bg-primary/10 text-primary" : "border-border/60 hover:border-primary/40"}`}
+                            >
+                              <Icon className="h-4 w-4" /> {m.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {(payMethod === "credit" || payMethod === "debit") && (
+                      <div>
+                        <Label className="mb-2 block">Cartão</Label>
+                        {cards.length === 0 ? (
+                          <div className="rounded-lg border border-dashed border-border/60 bg-surface p-3 text-center text-xs text-muted-foreground">
+                            Cadastre um cartão abaixo antes de continuar.
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {cards.map((c) => (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => setSelectedCardId(c.id)}
+                                className={`flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm transition-colors ${selectedCardId === c.id ? "border-primary bg-primary/10" : "border-border/60 hover:border-primary/40"}`}
+                              >
+                                <span>{c.card_brand} •••• {c.last_four}</span>
+                                {selectedCardId === c.id && <Check className="h-4 w-4 text-primary" />}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <Button onClick={startPayment} className="w-full bg-gradient-primary text-primary-foreground">
+                      Pagar R$ {Number(topupAmount || 0).toFixed(2)}
+                    </Button>
                   </div>
-                  <div className="flex gap-2">
-                    {[20, 50, 100, 200].map((v) => (
-                      <Button key={v} variant="outline" size="sm" onClick={() => setTopupAmount(String(v))}>R${v}</Button>
-                    ))}
+                )}
+
+                {payStep === "processing" && (
+                  <div className="flex flex-col items-center justify-center gap-3 py-8">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Processando seu pagamento de forma segura…</p>
                   </div>
-                  <Button onClick={topup} className="w-full bg-gradient-primary text-primary-foreground">Confirmar recarga</Button>
-                </div>
+                )}
+
+                {payStep === "pix" && (
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-border/60 bg-surface p-4 text-center">
+                      <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-lg bg-foreground p-2">
+                        <QrCode className="h-32 w-32 text-background" />
+                      </div>
+                      <p className="mt-3 text-xs text-muted-foreground">Escaneie o QR Code no app do seu banco</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs">PIX copia e cola</Label>
+                      <div className="flex gap-2">
+                        <Input readOnly value={pixCode} className="text-xs" />
+                        <Button type="button" variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(pixCode); toast.success("Código copiado"); }}>Copiar</Button>
+                      </div>
+                    </div>
+                    <p className="text-center text-sm font-semibold">Total: R$ {Number(topupAmount).toFixed(2)}</p>
+                    <Button onClick={confirmPixPaid} className="w-full bg-gradient-primary text-primary-foreground">Já paguei</Button>
+                  </div>
+                )}
+
+                {payStep === "paypal" && (
+                  <div className="space-y-4 text-center">
+                    <div className="rounded-xl border border-border/60 bg-surface p-6">
+                      <div className="font-display text-2xl font-bold text-[#0070ba]">PayPal</div>
+                      <p className="mt-2 text-xs text-muted-foreground">Você será redirecionado para concluir o pagamento de</p>
+                      <p className="mt-1 font-display text-2xl font-bold">R$ {Number(topupAmount).toFixed(2)}</p>
+                    </div>
+                    <Button onClick={confirmPaypalPaid} className="w-full bg-[#0070ba] text-white hover:bg-[#005ea6]">Continuar para PayPal</Button>
+                    <button onClick={() => setPayStep("select")} className="text-xs text-muted-foreground hover:underline">Cancelar</button>
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
           </div>
