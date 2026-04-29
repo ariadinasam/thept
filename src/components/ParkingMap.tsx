@@ -12,9 +12,16 @@ export interface MapMarker {
   price: number;
 }
 
+interface SearchPin {
+  lat: number;
+  lng: number;
+  label?: string;
+}
+
 interface Props {
   markers: MapMarker[];
   center?: [number, number];
+  searchPin?: SearchPin;
   onMarkerClick?: (id: string) => void;
   className?: string;
 }
