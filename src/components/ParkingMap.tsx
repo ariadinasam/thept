@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { getMapboxToken } from "@/server/config.functions";
 
 export interface MapMarker {
@@ -18,20 +19,33 @@ interface Props {
   className?: string;
 }
 
+// Module-scoped token cache to avoid re-fetching across instances
+let tokenPromise: Promise<string> | null = null;
+function fetchToken() {
+  if (!tokenPromise) {
+    tokenPromise = getMapboxToken().then((r) => r.token).catch(() => "");
+  }
+  return tokenPromise;
+}
+
 export function ParkingMap({ markers, center, onMarkerClick, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const clickRef = useRef(onMarkerClick);
   const [token, setToken] = useState<string>("");
   const [error, setError] = useState<string>("");
 
+  clickRef.current = onMarkerClick;
+
   useEffect(() => {
-    getMapboxToken().then(({ token }) => {
-      if (!token) setError("Token do Mapbox não configurado.");
-      else setToken(token);
-    }).catch(() => setError("Falha ao carregar mapa."));
+    fetchToken().then((t) => {
+      if (!t) setError("Token do Mapbox não configurado.");
+      else setToken(t);
+    });
   }, []);
 
+  // Init map once
   useEffect(() => {
     if (!token || !ref.current || mapRef.current) return;
     mapboxgl.accessToken = token;
@@ -40,12 +54,21 @@ export function ParkingMap({ markers, center, onMarkerClick, className }: Props)
       style: "mapbox://styles/mapbox/dark-v11",
       center: center ?? [-46.6500, -23.5630],
       zoom: 12,
+      attributionControl: false,
     });
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
     mapRef.current = map;
     return () => { map.remove(); mapRef.current = null; };
-  }, [token, center]);
+  }, [token]);
 
+  // Fly to new center when it changes (without re-creating the map)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !center) return;
+    map.flyTo({ center, zoom: 14, duration: 800 });
+  }, [center?.[0], center?.[1]]);
+
+  // Update markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -68,7 +91,7 @@ export function ParkingMap({ markers, center, onMarkerClick, className }: Props)
           border: 2px solid oklch(0.14 0.01 240);
           white-space: nowrap;
         ">${m.available} vagas · R$${m.price}</div>`;
-      el.onclick = () => onMarkerClick?.(m.id);
+      el.onclick = () => clickRef.current?.(m.id);
       const marker = new mapboxgl.Marker(el)
         .setLngLat([m.lng, m.lat])
         .setPopup(new mapboxgl.Popup({ offset: 18, closeButton: false }).setHTML(
@@ -81,9 +104,9 @@ export function ParkingMap({ markers, center, onMarkerClick, className }: Props)
     if (markers.length > 0 && !center) {
       const bounds = new mapboxgl.LngLatBounds();
       markers.forEach((m) => bounds.extend([m.lng, m.lat]));
-      map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
+      map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 0 });
     }
-  }, [markers, onMarkerClick, center]);
+  }, [markers]);
 
   if (error) {
     return (
