@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { ParkingMap } from "@/components/ParkingMap";
+import { gpsLinks } from "@/lib/geocode";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -79,8 +81,8 @@ function LocationDetail() {
   const Icon = cat.icon;
   const status = availabilityStatus(loc.available_spots, loc.total_spots);
   const isFull = loc.available_spots === 0;
-  const wazeUrl = `https://waze.com/ul?ll=${loc.latitude},${loc.longitude}&navigate=yes`;
-  const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`;
+  const links = gpsLinks(Number(loc.latitude), Number(loc.longitude), loc.name);
+  const openGps = (url: string) => window.open(url, "_blank", "noopener,noreferrer");
 
   return (
     <div className="min-h-screen bg-background">
