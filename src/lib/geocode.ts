@@ -41,10 +41,22 @@ export async function geocodeCep(cep: string): Promise<GeocodeResult | null> {
   return { name: address, address, latitude: f.center[1], longitude: f.center[0] };
 }
 
-export async function geocodeText(text: string): Promise<GeocodeResult[]> {
+export interface GeocodeOptions {
+  proximity?: { lat: number; lng: number }; // bias results near this point
+}
+
+export async function geocodeText(text: string, opts: GeocodeOptions = {}): Promise<GeocodeResult[]> {
   const t = await token();
   if (!t) return [];
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?access_token=${t}&country=BR&limit=5&language=pt`;
+  const params = new URLSearchParams({
+    access_token: t,
+    country: "BR",
+    limit: "5",
+    language: "pt",
+    types: "address,place,poi,postcode,neighborhood,locality",
+  });
+  if (opts.proximity) params.set("proximity", `${opts.proximity.lng},${opts.proximity.lat}`);
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?${params.toString()}`;
   const r = await fetch(url);
   if (!r.ok) return [];
   const j = await r.json();
@@ -54,6 +66,19 @@ export async function geocodeText(text: string): Promise<GeocodeResult[]> {
     latitude: f.center[1],
     longitude: f.center[0],
   }));
+}
+
+// Get user's current location via browser geolocation. Returns null if denied/unsupported.
+export function getBrowserLocation(timeoutMs = 4000): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+    const timer = setTimeout(() => resolve(null), timeoutMs);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { clearTimeout(timer); resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+      () => { clearTimeout(timer); resolve(null); },
+      { timeout: timeoutMs, maximumAge: 5 * 60 * 1000 },
+    );
+  });
 }
 
 export function gpsLinks(lat: number, lng: number, label?: string) {

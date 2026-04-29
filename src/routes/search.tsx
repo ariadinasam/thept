@@ -66,6 +66,7 @@ function SearchResult() {
   const nearby = useMemo(() => {
     return items
       .map((i) => ({ ...i, distanceKm: distanceKm({ lat, lng }, { lat: Number(i.latitude), lng: Number(i.longitude) }) }))
+      .filter((i) => i.distanceKm <= 15)
       .sort((a, b) => a.distanceKm - b.distanceKm)
       .slice(0, 8);
   }, [items, lat, lng]);

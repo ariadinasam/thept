@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { geocodeCep, geocodeText, isCep, type GeocodeResult, gpsLinks } from "@/lib/geocode";
+import { geocodeCep, geocodeText, isCep, getBrowserLocation, type GeocodeResult, gpsLinks } from "@/lib/geocode";
 import { availabilityStatus } from "@/lib/categories";
 import { toast } from "sonner";
 
@@ -38,6 +38,9 @@ interface SearchHit extends GeocodeResult {
   nearby: Array<ParkingItem & { distanceKm: number }>;
 }
 
+const NEARBY_RADIUS_KM = 15; // Only suggest partners within this radius
+const MAX_NEARBY = 8;
+
 function HomePage() {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<ParkingItem[]>([]);
@@ -45,6 +48,7 @@ function HomePage() {
   const [searching, setSearching] = useState(false);
   const [searchHit, setSearchHit] = useState<SearchHit | null>(null);
   const [center, setCenter] = useState<[number, number] | undefined>();
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const nav = useNavigate();
 
   useEffect(() => {
@@ -52,6 +56,8 @@ function HomePage() {
       setItems((data ?? []) as ParkingItem[]);
       setLoading(false);
     });
+    // Try to grab the user's location to bias future searches geographically
+    getBrowserLocation().then(setUserLoc);
   }, []);
 
   const localFiltered = useMemo(() => {
@@ -63,8 +69,9 @@ function HomePage() {
   const findNearby = (lat: number, lng: number) => {
     return items
       .map((i) => ({ ...i, distanceKm: distanceKm({ lat, lng }, { lat: Number(i.latitude), lng: Number(i.longitude) }) }))
+      .filter((i) => i.distanceKm <= NEARBY_RADIUS_KM)
       .sort((a, b) => a.distanceKm - b.distanceKm)
-      .slice(0, 6);
+      .slice(0, MAX_NEARBY);
   };
 
   const handleSearch = async (e?: React.FormEvent) => {
@@ -73,19 +80,27 @@ function HomePage() {
     if (!q) { setSearchHit(null); return; }
     setSearching(true);
     try {
+      // Use browser location as proximity bias if available; otherwise try to grab it now.
+      const proximity = userLoc ?? (await getBrowserLocation());
+      if (proximity && !userLoc) setUserLoc(proximity);
+
       let result: GeocodeResult | null = null;
       if (isCep(q)) {
         result = await geocodeCep(q);
         if (!result) { toast.error("CEP não encontrado"); return; }
       } else {
-        const results = await geocodeText(q);
+        const results = await geocodeText(q, proximity ? { proximity } : {});
         if (results.length === 0) { toast.info("Nada encontrado"); return; }
         result = results[0];
       }
       const nearby = findNearby(result.latitude, result.longitude);
       setSearchHit({ ...result, nearby });
       setCenter([result.longitude, result.latitude]);
-      toast.success("Endereço localizado");
+      if (nearby.length === 0) {
+        toast.info("Endereço localizado, mas sem parceiros num raio de 15 km");
+      } else {
+        toast.success(`${nearby.length} estacionamentos próximos`);
+      }
     } catch {
       toast.error("Falha ao buscar endereço");
     } finally {
