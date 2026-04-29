@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -206,6 +207,7 @@ function WalletPage() {
           ))}
         </div>
       </section>
+      <Footer />
     </div>
   );
 }

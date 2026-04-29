@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
       parking_locations: {
         Row: {
           address: string
@@ -62,6 +89,42 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_applications: {
+        Row: {
+          address: string | null
+          business_name: string
+          category: string | null
+          contact_name: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          phone: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_name: string
+          category?: string | null
+          contact_name: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string
+          category?: string | null
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           card_brand: string
@@ -102,6 +165,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          permission_documents: Json
           phone: string | null
           special_permissions: string[] | null
           updated_at: string
@@ -112,6 +176,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          permission_documents?: Json
           phone?: string | null
           special_permissions?: string[] | null
           updated_at?: string
@@ -122,6 +187,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          permission_documents?: Json
           phone?: string | null
           special_permissions?: string[] | null
           updated_at?: string

@@ -1,7 +1,14 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { MapPin, User, LogOut, Wallet } from "lucide-react";
+import { MapPin, User, LogOut, Wallet, Heart, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -25,25 +32,41 @@ export function Header() {
             Parceiros
           </Link>
           {user && (
-            <Link to="/wallet" className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "text-foreground bg-secondary" }}>
-              Carteira
-            </Link>
+            <>
+              <Link to="/saved" className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "text-foreground bg-secondary" }}>
+                Salvos
+              </Link>
+              <Link to="/wallet" className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" activeProps={{ className: "text-foreground bg-secondary" }}>
+                Carteira
+              </Link>
+            </>
           )}
         </nav>
 
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              <Button variant="ghost" size="sm" onClick={() => nav({ to: "/wallet" })} className="hidden sm:inline-flex">
-                <Wallet className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => nav({ to: "/profile" })}>
+              <Button variant="ghost" size="sm" onClick={() => nav({ to: "/profile" })} className="hidden sm:inline-flex">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Perfil</span>
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => signOut()}>
+              <Button variant="ghost" size="sm" onClick={() => signOut()} className="hidden sm:inline-flex">
                 <LogOut className="h-4 w-4" />
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="md:hidden">
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => nav({ to: "/saved" })}><Heart className="h-4 w-4" /> Salvos</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => nav({ to: "/wallet" })}><Wallet className="h-4 w-4" /> Carteira</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => nav({ to: "/profile" })}><User className="h-4 w-4" /> Perfil</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()}><LogOut className="h-4 w-4" /> Sair</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button size="sm" onClick={() => nav({ to: "/auth" })} className="bg-gradient-primary text-primary-foreground hover:opacity-90">
