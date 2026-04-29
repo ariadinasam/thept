@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PartnersRouteImport } from './routes/partners'
@@ -22,6 +23,11 @@ import { Route as LocationIdRouteImport } from './routes/location.$id'
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SavedRoute = SavedRouteImport.update({
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/wallet': typeof WalletRoute
   '/location/$id': typeof LocationIdRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/wallet': typeof WalletRoute
   '/location/$id': typeof LocationIdRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/wallet': typeof WalletRoute
   '/location/$id': typeof LocationIdRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/partners'
     | '/profile'
     | '/saved'
+    | '/search'
     | '/wallet'
     | '/location/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/partners'
     | '/profile'
     | '/saved'
+    | '/search'
     | '/wallet'
     | '/location/$id'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/partners'
     | '/profile'
     | '/saved'
+    | '/search'
     | '/wallet'
     | '/location/$id'
   fileRoutesById: FileRoutesById
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   PartnersRoute: typeof PartnersRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
+  SearchRoute: typeof SearchRoute
   WalletRoute: typeof WalletRoute
   LocationIdRoute: typeof LocationIdRoute
 }
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartnersRoute: PartnersRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
+  SearchRoute: SearchRoute,
   WalletRoute: WalletRoute,
   LocationIdRoute: LocationIdRoute,
 }
