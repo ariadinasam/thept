@@ -89,14 +89,58 @@ function WalletPage() {
     refresh();
   };
 
-  const topup = async () => {
-    if (!user) return;
+  const resetTopup = () => {
+    setPayStep("select");
+    setTopupAmount("50");
+    setSelectedCardId("");
+  };
+
+  const startPayment = async () => {
     const amount = Number(topupAmount);
     if (!amount || amount <= 0) return toast.error("Valor inválido");
+
+    if (payMethod === "pix") {
+      setPayStep("pix");
+      return;
+    }
+    if (payMethod === "paypal") {
+      setPayStep("paypal");
+      return;
+    }
+    // credit / debit
+    if (!selectedCardId) return toast.error("Selecione um cartão");
+    setPayStep("processing");
+    // Simula processamento de gateway de pagamento
+    await new Promise((r) => setTimeout(r, 2200));
+    // 95% de sucesso simulado
+    const success = Math.random() > 0.05;
+    if (!success) {
+      toast.error("Pagamento recusado pelo emissor. Tente outro cartão.");
+      setPayStep("select");
+      return;
+    }
+    await creditBalance(amount);
+  };
+
+  const confirmPixPaid = async () => {
+    setPayStep("processing");
+    await new Promise((r) => setTimeout(r, 1800));
+    await creditBalance(Number(topupAmount));
+  };
+
+  const confirmPaypalPaid = async () => {
+    setPayStep("processing");
+    await new Promise((r) => setTimeout(r, 2000));
+    await creditBalance(Number(topupAmount));
+  };
+
+  const creditBalance = async (amount: number) => {
+    if (!user) return;
     const { error } = await supabase.from("wallets").update({ balance: balance + amount }).eq("user_id", user.id);
-    if (error) return toast.error(error.message);
-    toast.success(`R$ ${amount.toFixed(2)} adicionado!`);
+    if (error) { toast.error(error.message); setPayStep("select"); return; }
+    toast.success(`R$ ${amount.toFixed(2)} adicionado à carteira!`);
     setTopupOpen(false);
+    resetTopup();
     refresh();
   };
 
