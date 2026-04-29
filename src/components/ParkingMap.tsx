@@ -12,9 +12,16 @@ export interface MapMarker {
   price: number;
 }
 
+interface SearchPin {
+  lat: number;
+  lng: number;
+  label?: string;
+}
+
 interface Props {
   markers: MapMarker[];
   center?: [number, number];
+  searchPin?: SearchPin;
   onMarkerClick?: (id: string) => void;
   className?: string;
 }
@@ -28,10 +35,11 @@ function fetchToken() {
   return tokenPromise;
 }
 
-export function ParkingMap({ markers, center, onMarkerClick, className }: Props) {
+export function ParkingMap({ markers, center, searchPin, onMarkerClick, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const searchPinRef = useRef<mapboxgl.Marker | null>(null);
   const clickRef = useRef(onMarkerClick);
   const [token, setToken] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -67,6 +75,52 @@ export function ParkingMap({ markers, center, onMarkerClick, className }: Props)
     if (!map || !center) return;
     map.flyTo({ center, zoom: 14, duration: 800 });
   }, [center?.[0], center?.[1]]);
+
+  // Search pin (where the user searched)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (searchPinRef.current) { searchPinRef.current.remove(); searchPinRef.current = null; }
+    if (!searchPin) return;
+    const el = document.createElement("div");
+    el.innerHTML = `
+      <div style="position: relative; transform: translate(-50%, -100%);">
+        <div style="
+          background: oklch(0.72 0.20 260);
+          color: white;
+          width: 38px;
+          height: 38px;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+          border: 3px solid white;
+        ">
+          <div style="transform: rotate(45deg); font-size: 18px;">📍</div>
+        </div>
+        <div style="
+          position: absolute;
+          top: 44px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: oklch(0.72 0.20 260);
+          color: white;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 600;
+          white-space: nowrap;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+        ">Você buscou aqui</div>
+      </div>`;
+    const m = new mapboxgl.Marker({ element: el, anchor: "bottom" })
+      .setLngLat([searchPin.lng, searchPin.lat])
+      .setPopup(searchPin.label ? new mapboxgl.Popup({ offset: 28, closeButton: false }).setHTML(`<strong>${searchPin.label}</strong>`) : undefined)
+      .addTo(map);
+    searchPinRef.current = m;
+  }, [searchPin?.lat, searchPin?.lng, searchPin?.label]);
 
   // Update markers
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, MapPin, Zap, Shield, Sparkles, Loader2 } from "lucide-react";
+import { Search, MapPin, Zap, Shield, Sparkles, Loader2, Navigation } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LocationCard, type ParkingItem } from "@/components/LocationCard";
@@ -8,8 +8,10 @@ import { ParkingMap } from "@/components/ParkingMap";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { geocodeCep, geocodeText, isCep, type GeocodeResult, gpsLinks } from "@/lib/geocode";
+import { availabilityStatus } from "@/lib/categories";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -22,12 +24,26 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
+// Haversine — km between two coords
+function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+interface SearchHit extends GeocodeResult {
+  nearby: Array<ParkingItem & { distanceKm: number }>;
+}
+
 function HomePage() {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<ParkingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [geoResults, setGeoResults] = useState<GeocodeResult[]>([]);
+  const [searchHit, setSearchHit] = useState<SearchHit | null>(null);
   const [center, setCenter] = useState<[number, number] | undefined>();
   const nav = useNavigate();
 
@@ -39,30 +55,37 @@ function HomePage() {
   }, []);
 
   const localFiltered = useMemo(() => {
-    if (!query.trim()) return items;
+    if (!query.trim() || searchHit) return items;
     const q = query.toLowerCase();
     return items.filter((i) => i.name.toLowerCase().includes(q) || i.address.toLowerCase().includes(q));
-  }, [items, query]);
+  }, [items, query, searchHit]);
+
+  const findNearby = (lat: number, lng: number) => {
+    return items
+      .map((i) => ({ ...i, distanceKm: distanceKm({ lat, lng }, { lat: Number(i.latitude), lng: Number(i.longitude) }) }))
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, 6);
+  };
 
   const handleSearch = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const q = query.trim();
-    if (!q) return;
+    if (!q) { setSearchHit(null); return; }
     setSearching(true);
-    setGeoResults([]);
     try {
+      let result: GeocodeResult | null = null;
       if (isCep(q)) {
-        const r = await geocodeCep(q);
-        if (!r) { toast.error("CEP não encontrado"); return; }
-        setGeoResults([r]);
-        setCenter([r.longitude, r.latitude]);
-        toast.success("Endereço localizado");
+        result = await geocodeCep(q);
+        if (!result) { toast.error("CEP não encontrado"); return; }
       } else {
         const results = await geocodeText(q);
-        if (results.length === 0) { toast.info("Nada encontrado para esta busca"); return; }
-        setGeoResults(results);
-        setCenter([results[0].longitude, results[0].latitude]);
+        if (results.length === 0) { toast.info("Nada encontrado"); return; }
+        result = results[0];
       }
+      const nearby = findNearby(result.latitude, result.longitude);
+      setSearchHit({ ...result, nearby });
+      setCenter([result.longitude, result.latitude]);
+      toast.success("Endereço localizado");
     } catch {
       toast.error("Falha ao buscar endereço");
     } finally {
@@ -70,10 +93,17 @@ function HomePage() {
     }
   };
 
-  const markers = localFiltered.map((i) => ({
+  const clearSearch = () => { setSearchHit(null); setQuery(""); setCenter(undefined); };
+
+  const displayList = searchHit ? searchHit.nearby : localFiltered;
+  const markers = displayList.map((i) => ({
     id: i.id, lat: Number(i.latitude), lng: Number(i.longitude),
     name: i.name, available: i.available_spots, price: i.price_per_hour,
   }));
+
+  const searchPin = searchHit
+    ? { lat: searchHit.latitude, lng: searchHit.longitude, label: searchHit.name }
+    : undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -113,71 +143,95 @@ function HomePage() {
                   {s}
                 </button>
               ))}
+              {searchHit && (
+                <button type="button" onClick={clearSearch} className="rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1 text-destructive">
+                  Limpar busca ✕
+                </button>
+              )}
             </div>
           </form>
         </div>
       </section>
 
-      {/* Geocoded results */}
-      {geoResults.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
-          <h2 className="font-display text-xl font-bold">Resultados da busca</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Endereços encontrados — abra no GPS.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {geoResults.map((r, i) => {
-              const links = gpsLinks(r.latitude, r.longitude, r.name);
-              return (
-                <Card key={i} className="border-border/60 bg-gradient-card p-4">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <div className="min-w-0">
-                      <div className="font-medium">{r.name}</div>
-                      <div className="text-xs text-muted-foreground">{r.address}</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <Button asChild size="sm" variant="outline" className="flex-1">
-                      <a href={links.waze} target="_blank" rel="noopener noreferrer">Waze</a>
-                    </Button>
-                    <Button asChild size="sm" variant="outline" className="flex-1">
-                      <a href={links.gmapsSearch} target="_blank" rel="noopener noreferrer">Google Maps</a>
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {/* Map first, then results below */}
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="font-display text-2xl font-bold">
+            {searchHit ? "Sugestões perto do seu destino" : "Mapa de vagas"}
+          </h2>
+          <Link to="/saved" className="text-xs text-primary hover:underline">Meus salvos →</Link>
+        </div>
 
-      {/* Map + Results */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-        <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-          <div>
-            <div className="mb-4 flex items-baseline justify-between">
-              <h2 className="font-display text-2xl font-bold">
-                {localFiltered.length} {localFiltered.length === 1 ? "local parceiro" : "locais parceiros"}
-              </h2>
-              <Link to="/saved" className="text-xs text-primary hover:underline">Meus salvos →</Link>
-            </div>
-            <div className="space-y-3">
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-32 animate-pulse rounded-2xl bg-surface" />
-                ))
-              ) : localFiltered.length === 0 ? (
-                <div className="rounded-2xl border border-border/60 bg-surface p-8 text-center text-sm text-muted-foreground">
-                  Nenhum parceiro encontrado para "{query}".<br />
-                  Use a busca acima para localizar qualquer endereço pelo GPS.
-                </div>
-              ) : (
-                localFiltered.map((it) => <LocationCard key={it.id} item={it} />)
-              )}
-            </div>
-          </div>
+        <ParkingMap
+          markers={markers}
+          center={center}
+          searchPin={searchPin}
+          className="h-[420px] w-full sm:h-[520px]"
+          onMarkerClick={(id) => nav({ to: "/location/$id", params: { id } })}
+        />
 
-          <div className="lg:sticky lg:top-20 lg:self-start">
-            <ParkingMap markers={markers} center={center} className="h-[420px] w-full lg:h-[640px]" onMarkerClick={(id) => nav({ to: "/location/$id", params: { id } })} />
+        {/* Searched address card */}
+        {searchHit && (
+          <Card className="mt-6 border-primary/30 bg-primary/5 p-5">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs uppercase tracking-wide text-primary">Endereço buscado</div>
+                <div className="font-display text-base font-semibold">{searchHit.name}</div>
+                <div className="text-xs text-muted-foreground">{searchHit.address}</div>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline" className="flex-1 min-w-[140px]">
+                <a href={gpsLinks(searchHit.latitude, searchHit.longitude, searchHit.name).waze} target="_blank" rel="noopener noreferrer">
+                  <Navigation className="h-4 w-4" /> Abrir no Waze
+                </a>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="flex-1 min-w-[140px]">
+                <a href={gpsLinks(searchHit.latitude, searchHit.longitude, searchHit.name).gmapsSearch} target="_blank" rel="noopener noreferrer">
+                  <Navigation className="h-4 w-4" /> Google Maps
+                </a>
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Partners list (below the map) */}
+        <div className="mt-8">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h3 className="font-display text-xl font-bold">
+              {searchHit
+                ? `${displayList.length} ${displayList.length === 1 ? "estacionamento próximo" : "estacionamentos próximos"}`
+                : `${displayList.length} ${displayList.length === 1 ? "local parceiro" : "locais parceiros"}`}
+            </h3>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-32 animate-pulse rounded-2xl bg-surface" />
+              ))
+            ) : displayList.length === 0 ? (
+              <div className="md:col-span-2 rounded-2xl border border-border/60 bg-surface p-8 text-center text-sm text-muted-foreground">
+                Nenhum parceiro encontrado.
+              </div>
+            ) : (
+              displayList.map((it) => {
+                const distance = "distanceKm" in it ? (it as ParkingItem & { distanceKm: number }).distanceKm : null;
+                const status = availabilityStatus(it.available_spots, it.total_spots);
+                return (
+                  <div key={it.id} className="relative">
+                    <LocationCard item={it} />
+                    {distance != null && (
+                      <Badge variant="outline" className="absolute right-3 top-3 border-primary/30 bg-background/90 text-xs">
+                        {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`} · {status.label}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
