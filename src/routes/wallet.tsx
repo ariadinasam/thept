@@ -43,6 +43,10 @@ function WalletPage() {
   const [open, setOpen] = useState(false);
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupAmount, setTopupAmount] = useState("50");
+  const [payMethod, setPayMethod] = useState<"pix" | "credit" | "debit" | "paypal">("pix");
+  const [selectedCardId, setSelectedCardId] = useState<string>("");
+  const [payStep, setPayStep] = useState<"select" | "processing" | "pix" | "paypal">("select");
+  const [pixCode] = useState("00020126360014BR.GOV.BCB.PIX0114+5511999999999THEPT5204000053039865802BR5909THEPT LTD6009SAO PAULO62070503***6304A1B2");
   const [card, setCard] = useState({ number: "", name: "", expiry: "", cvv: "" });
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
