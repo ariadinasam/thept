@@ -21,7 +21,11 @@ function translateAuthError(msg: string): string {
   if (m.includes("password should be at least")) return "A senha precisa ter no mínimo 6 caracteres.";
   if (m.includes("pwned") || m.includes("compromised") || m.includes("breach")) return "Esta senha apareceu em vazamentos públicos. Escolha uma senha diferente e mais segura.";
   if (m.includes("weak password") || m.includes("password is too weak")) return "Senha muito fraca. Use letras, números e símbolos.";
-  if (m.includes("rate limit") || m.includes("too many")) return "Muitas tentativas. Aguarde alguns instantes e tente novamente.";
+  if (m.includes("rate limit") || m.includes("too many") || m.includes("for security purposes")) {
+    const match = msg.match(/(\d+)\s*seconds?/i);
+    return match ? `Aguarde ${match[1]} segundos antes de tentar novamente.` : "Muitas tentativas. Aguarde alguns instantes e tente novamente.";
+  }
+  if (m.includes("over_email_send_rate_limit") || m.includes("email rate limit")) return "Limite de envio de e-mails atingido. Aguarde um minuto.";
   if (m.includes("invalid email")) return "E-mail inválido.";
   return msg;
 }
@@ -80,12 +84,16 @@ function AuthPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: email.trim(), password,
       options: { emailRedirectTo: window.location.origin, data: { full_name: name } },
     });
     setLoading(false);
     if (error) return toast.error(translateAuthError(error.message));
+    // When email already exists, Supabase returns a user with an empty identities array (security feature)
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      return toast.error("Este e-mail já está cadastrado. Tente entrar ou recuperar sua senha.");
+    }
     toast.success("Conta criada! Verifique seu e-mail para confirmar.");
   };
 
