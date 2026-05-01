@@ -10,11 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { availabilityStatus, getCategory } from "@/lib/categories";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, Navigation, Star, Heart, Clock, Accessibility } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Star, Heart, Clock, Accessibility, Wallet, AlertCircle } from "lucide-react";
+
+const SPECIAL_OPTIONS = [
+  { key: "pcd", label: "PCD" },
+  { key: "elderly", label: "Idoso" },
+  { key: "pregnant", label: "Gestante" },
+];
 
 export const Route = createFileRoute("/location/$id")({
   component: LocationDetail,
