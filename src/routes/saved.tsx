@@ -94,7 +94,11 @@ function SavedPage() {
                   <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome ou endereço..." className="pl-9" />
                 </div>
                 <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">
-                  {filteredAvail.map((a) => {
+                  {filteredAvail.length === 0 ? (
+                    <p className="py-6 text-center text-xs text-muted-foreground">
+                      {search ? "Nenhum local encontrado." : "Carregando locais..."}
+                    </p>
+                  ) : filteredAvail.map((a) => {
                     const isSaved = savedIds.has(a.id);
                     return (
                       <Card key={a.id} className="flex items-center justify-between border-border/60 bg-surface p-3">
