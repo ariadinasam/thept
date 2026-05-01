@@ -106,6 +106,13 @@ function AuthPage() {
                 <Button type="submit" disabled={loading} className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90">
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
+                <button
+                  type="button"
+                  onClick={onForgot}
+                  className="block w-full text-center text-xs text-primary hover:underline"
+                >
+                  Esqueci minha senha
+                </button>
               </form>
             </TabsContent>
 
