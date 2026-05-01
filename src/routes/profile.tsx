@@ -51,6 +51,7 @@ function ProfilePage() {
           full_name: data.full_name ?? "", phone: data.phone ?? "",
           car_plate: data.car_plate ?? "", car_model: data.car_model ?? "",
           special_permissions: data.special_permissions ?? [],
+          avatar_url: (data as { avatar_url?: string | null }).avatar_url ?? "",
         });
         setDocs((data.permission_documents ?? {}) as DocsMap);
       }
