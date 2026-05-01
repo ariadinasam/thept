@@ -107,14 +107,62 @@ function ProfilePage() {
   };
 
   const changePassword = async () => {
-    if (pwd.next.length < 6) return toast.error("Senha deve ter ao menos 6 caracteres.");
+    if (pwd.next.length < 8) return toast.error("A senha precisa ter no mínimo 8 caracteres.");
+    if (!/[A-Z]/.test(pwd.next) || !/[a-z]/.test(pwd.next) || !/\d/.test(pwd.next))
+      return toast.error("A senha precisa ter letras maiúsculas, minúsculas e números.");
     if (pwd.next !== pwd.confirm) return toast.error("Senhas não conferem.");
     setPwdSaving(true);
     const { error } = await supabase.auth.updateUser({ password: pwd.next });
     setPwdSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(translateAuthError(error.message));
     toast.success("Senha alterada com sucesso!");
     setPwd({ next: "", confirm: "" });
+  };
+
+  const translateAuthError = (msg: string): string => {
+    const m = msg.toLowerCase();
+    if (m.includes("pwned") || m.includes("compromised") || m.includes("breach"))
+      return "Esta senha apareceu em vazamentos públicos. Escolha uma diferente.";
+    if (m.includes("weak password")) return "Senha muito fraca.";
+    if (m.includes("same password") || m.includes("should be different"))
+      return "A nova senha precisa ser diferente da atual.";
+    if (m.includes("invalid email")) return "E-mail inválido.";
+    if (m.includes("email_exists") || m.includes("already")) return "Este e-mail já está em uso.";
+    if (m.includes("rate limit") || m.includes("too many")) return "Muitas tentativas. Aguarde um momento.";
+    return msg;
+  };
+
+  const changeEmail = async () => {
+    const next = newEmail.trim();
+    if (!next || !/^\S+@\S+\.\S+$/.test(next)) return toast.error("Informe um e-mail válido.");
+    if (next === user?.email) return toast.error("Este já é o seu e-mail atual.");
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser(
+      { email: next },
+      { emailRedirectTo: window.location.origin + "/profile" },
+    );
+    setEmailSaving(false);
+    if (error) return toast.error(translateAuthError(error.message));
+    toast.success("Confirme a alteração no link enviado para o novo e-mail.");
+    setNewEmail("");
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) return toast.error("Envie uma imagem.");
+    if (file.size > 3 * 1024 * 1024) return toast.error("Imagem muito grande (máx 3MB).");
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { setUploadingAvatar(false); return toast.error(upErr.message); }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl;
+    const { error: dbErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+    setUploadingAvatar(false);
+    if (dbErr) return toast.error(dbErr.message);
+    setForm((f) => ({ ...f, avatar_url: url }));
+    toast.success("Foto de perfil atualizada!");
   };
 
   if (!user) return null;
