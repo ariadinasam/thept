@@ -175,14 +175,56 @@ function ProfilePage() {
         <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
 
         <Card className="mt-6 space-y-5 border-border/60 bg-gradient-card p-6">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-20 w-20 border border-border/60">
+              <AvatarImage src={form.avatar_url || undefined} alt="Avatar" />
+              <AvatarFallback className="bg-surface">
+                <UserIcon className="h-8 w-8 text-muted-foreground" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <input
+                id="avatar-input" type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); e.target.value = ""; }}
+              />
+              <Button
+                type="button" variant="outline" size="sm" disabled={uploadingAvatar}
+                onClick={() => document.getElementById("avatar-input")?.click()}
+              >
+                <Camera className="h-3.5 w-3.5" />
+                {uploadingAvatar ? "Enviando..." : form.avatar_url ? "Trocar foto" : "Enviar foto"}
+              </Button>
+              <p className="mt-1 text-xs text-muted-foreground">JPG ou PNG, até 3MB.</p>
+            </div>
+          </div>
           <div>
             <Label>Nome completo</Label>
             <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           </div>
           <div>
             <Label>Telefone</Label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(85) 99999-9999" />
           </div>
+        </Card>
+
+        <Card className="mt-4 space-y-4 border-border/60 bg-gradient-card p-6">
+          <div className="flex items-center gap-2">
+            <Mail className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold">Alterar e-mail</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            E-mail atual: <span className="font-medium text-foreground">{user.email}</span>
+          </p>
+          <div>
+            <Label>Novo e-mail</Label>
+            <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="novo@email.com" />
+          </div>
+          <Button onClick={changeEmail} disabled={emailSaving} variant="outline" className="w-full">
+            {emailSaving ? "Enviando..." : "Alterar e-mail"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Você precisará confirmar a alteração através do link enviado para o novo endereço.
+          </p>
         </Card>
 
         <Card className="mt-4 space-y-5 border-border/60 bg-gradient-card p-6">
