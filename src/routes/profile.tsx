@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Car, Accessibility, Upload, FileCheck2, Lock, Trash2, Heart } from "lucide-react";
+import { Car, Accessibility, Upload, FileCheck2, Lock, Trash2, Heart, Camera, Mail, User as UserIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Perfil — THEPT" }] }),
