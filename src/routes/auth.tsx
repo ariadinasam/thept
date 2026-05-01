@@ -19,14 +19,17 @@ function translateAuthError(msg: string): string {
   if (m.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.";
   if (m.includes("user already registered") || m.includes("already been registered")) return "Este e-mail já está cadastrado. Tente entrar.";
   if (m.includes("password should be at least")) return "A senha precisa ter no mínimo 6 caracteres.";
-  if (m.includes("pwned") || m.includes("compromised") || m.includes("breach")) return "Esta senha apareceu em vazamentos públicos. Escolha uma senha diferente e mais segura.";
-  if (m.includes("weak password") || m.includes("password is too weak")) return "Senha muito fraca. Use letras, números e símbolos.";
+  if (m.includes("pwned") || m.includes("compromised") || m.includes("breach") || m.includes("leaked") || m.includes("data breach"))
+    return "Esta senha apareceu em vazamentos públicos. Escolha uma senha diferente e mais segura.";
+  if (m.includes("weak password") || m.includes("password is too weak") || m.includes("password is known to be weak") || m.includes("too common") || m.includes("easy to guess"))
+    return "Senha muito fraca. Use letras maiúsculas, minúsculas, números e símbolos.";
   if (m.includes("rate limit") || m.includes("too many") || m.includes("for security purposes")) {
     const match = msg.match(/(\d+)\s*seconds?/i);
     return match ? `Aguarde ${match[1]} segundos antes de tentar novamente.` : "Muitas tentativas. Aguarde alguns instantes e tente novamente.";
   }
   if (m.includes("over_email_send_rate_limit") || m.includes("email rate limit")) return "Limite de envio de e-mails atingido. Aguarde um minuto.";
   if (m.includes("invalid email")) return "E-mail inválido.";
+  if (m.includes("signup") && m.includes("disabled")) return "Cadastros estão desabilitados no momento.";
   return msg;
 }
 
