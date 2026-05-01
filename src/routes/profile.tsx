@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Car, Accessibility, Upload, FileCheck2, Lock, Trash2, Heart } from "lucide-react";
+import { Car, Accessibility, Upload, FileCheck2, Lock, Trash2, Heart, Camera, Mail, User as UserIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Perfil — THEPT" }] }),
@@ -29,11 +30,14 @@ function ProfilePage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ full_name: "", phone: "", car_plate: "", car_model: "", special_permissions: [] as string[] });
+  const [form, setForm] = useState({ full_name: "", phone: "", car_plate: "", car_model: "", special_permissions: [] as string[], avatar_url: "" });
   const [docs, setDocs] = useState<DocsMap>({});
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [pwd, setPwd] = useState({ next: "", confirm: "" });
   const [pwdSaving, setPwdSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -47,6 +51,7 @@ function ProfilePage() {
           full_name: data.full_name ?? "", phone: data.phone ?? "",
           car_plate: data.car_plate ?? "", car_model: data.car_model ?? "",
           special_permissions: data.special_permissions ?? [],
+          avatar_url: (data as { avatar_url?: string | null }).avatar_url ?? "",
         });
         setDocs((data.permission_documents ?? {}) as DocsMap);
       }
@@ -102,14 +107,62 @@ function ProfilePage() {
   };
 
   const changePassword = async () => {
-    if (pwd.next.length < 6) return toast.error("Senha deve ter ao menos 6 caracteres.");
+    if (pwd.next.length < 8) return toast.error("A senha precisa ter no mínimo 8 caracteres.");
+    if (!/[A-Z]/.test(pwd.next) || !/[a-z]/.test(pwd.next) || !/\d/.test(pwd.next))
+      return toast.error("A senha precisa ter letras maiúsculas, minúsculas e números.");
     if (pwd.next !== pwd.confirm) return toast.error("Senhas não conferem.");
     setPwdSaving(true);
     const { error } = await supabase.auth.updateUser({ password: pwd.next });
     setPwdSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(translateAuthError(error.message));
     toast.success("Senha alterada com sucesso!");
     setPwd({ next: "", confirm: "" });
+  };
+
+  const translateAuthError = (msg: string): string => {
+    const m = msg.toLowerCase();
+    if (m.includes("pwned") || m.includes("compromised") || m.includes("breach"))
+      return "Esta senha apareceu em vazamentos públicos. Escolha uma diferente.";
+    if (m.includes("weak password")) return "Senha muito fraca.";
+    if (m.includes("same password") || m.includes("should be different"))
+      return "A nova senha precisa ser diferente da atual.";
+    if (m.includes("invalid email")) return "E-mail inválido.";
+    if (m.includes("email_exists") || m.includes("already")) return "Este e-mail já está em uso.";
+    if (m.includes("rate limit") || m.includes("too many")) return "Muitas tentativas. Aguarde um momento.";
+    return msg;
+  };
+
+  const changeEmail = async () => {
+    const next = newEmail.trim();
+    if (!next || !/^\S+@\S+\.\S+$/.test(next)) return toast.error("Informe um e-mail válido.");
+    if (next === user?.email) return toast.error("Este já é o seu e-mail atual.");
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser(
+      { email: next },
+      { emailRedirectTo: window.location.origin + "/profile" },
+    );
+    setEmailSaving(false);
+    if (error) return toast.error(translateAuthError(error.message));
+    toast.success("Confirme a alteração no link enviado para o novo e-mail.");
+    setNewEmail("");
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) return toast.error("Envie uma imagem.");
+    if (file.size > 3 * 1024 * 1024) return toast.error("Imagem muito grande (máx 3MB).");
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { setUploadingAvatar(false); return toast.error(upErr.message); }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl;
+    const { error: dbErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+    setUploadingAvatar(false);
+    if (dbErr) return toast.error(dbErr.message);
+    setForm((f) => ({ ...f, avatar_url: url }));
+    toast.success("Foto de perfil atualizada!");
   };
 
   if (!user) return null;
@@ -122,14 +175,56 @@ function ProfilePage() {
         <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
 
         <Card className="mt-6 space-y-5 border-border/60 bg-gradient-card p-6">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-20 w-20 border border-border/60">
+              <AvatarImage src={form.avatar_url || undefined} alt="Avatar" />
+              <AvatarFallback className="bg-surface">
+                <UserIcon className="h-8 w-8 text-muted-foreground" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <input
+                id="avatar-input" type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); e.target.value = ""; }}
+              />
+              <Button
+                type="button" variant="outline" size="sm" disabled={uploadingAvatar}
+                onClick={() => document.getElementById("avatar-input")?.click()}
+              >
+                <Camera className="h-3.5 w-3.5" />
+                {uploadingAvatar ? "Enviando..." : form.avatar_url ? "Trocar foto" : "Enviar foto"}
+              </Button>
+              <p className="mt-1 text-xs text-muted-foreground">JPG ou PNG, até 3MB.</p>
+            </div>
+          </div>
           <div>
             <Label>Nome completo</Label>
             <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           </div>
           <div>
             <Label>Telefone</Label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(85) 99999-9999" />
           </div>
+        </Card>
+
+        <Card className="mt-4 space-y-4 border-border/60 bg-gradient-card p-6">
+          <div className="flex items-center gap-2">
+            <Mail className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold">Alterar e-mail</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            E-mail atual: <span className="font-medium text-foreground">{user.email}</span>
+          </p>
+          <div>
+            <Label>Novo e-mail</Label>
+            <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="novo@email.com" />
+          </div>
+          <Button onClick={changeEmail} disabled={emailSaving} variant="outline" className="w-full">
+            {emailSaving ? "Enviando..." : "Alterar e-mail"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Você precisará confirmar a alteração através do link enviado para o novo endereço.
+          </p>
         </Card>
 
         <Card className="mt-4 space-y-5 border-border/60 bg-gradient-card p-6">
@@ -219,7 +314,7 @@ function ProfilePage() {
           </div>
           <div>
             <Label>Nova senha</Label>
-            <Input type="password" value={pwd.next} onChange={(e) => setPwd({ ...pwd, next: e.target.value })} placeholder="Mínimo 6 caracteres" />
+            <Input type="password" value={pwd.next} onChange={(e) => setPwd({ ...pwd, next: e.target.value })} placeholder="Mín. 8 caracteres, com maiúscula, minúscula e número" />
           </div>
           <div>
             <Label>Confirmar nova senha</Label>
