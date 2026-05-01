@@ -165,6 +165,14 @@ function ProfilePage() {
     toast.success("Foto de perfil atualizada!");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center text-sm text-muted-foreground">Carregando perfil...</div>
+      </div>
+    );
+  }
   if (!user) return null;
 
   return (
