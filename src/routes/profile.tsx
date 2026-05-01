@@ -314,7 +314,7 @@ function ProfilePage() {
           </div>
           <div>
             <Label>Nova senha</Label>
-            <Input type="password" value={pwd.next} onChange={(e) => setPwd({ ...pwd, next: e.target.value })} placeholder="Mínimo 6 caracteres" />
+            <Input type="password" value={pwd.next} onChange={(e) => setPwd({ ...pwd, next: e.target.value })} placeholder="Mín. 8 caracteres, com maiúscula, minúscula e número" />
           </div>
           <div>
             <Label>Confirmar nova senha</Label>
