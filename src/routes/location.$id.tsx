@@ -41,12 +41,20 @@ function LocationDetail() {
   const [saved, setSaved] = useState(false);
   const [hours, setHours] = useState("1");
   const [reserveOpen, setReserveOpen] = useState(false);
+  const [balance, setBalance] = useState<number>(0);
+  const [specialDocs, setSpecialDocs] = useState<Record<string, string>>({});
+  const [selectedSpecial, setSelectedSpecial] = useState<string[]>([]);
+  const [reserving, setReserving] = useState(false);
 
   useEffect(() => {
     supabase.from("parking_locations").select("*").eq("id", id).maybeSingle().then(({ data }) => setLoc(data as Loc | null));
     if (user) {
       supabase.from("saved_locations").select("id").eq("user_id", user.id).eq("location_id", id).maybeSingle()
         .then(({ data }) => setSaved(!!data));
+      supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle()
+        .then(({ data }) => { if (data) setBalance(Number(data.balance)); });
+      supabase.from("profiles").select("permission_documents").eq("id", user.id).maybeSingle()
+        .then(({ data }) => setSpecialDocs(((data?.permission_documents ?? {}) as Record<string, string>)));
     }
   }, [id, user]);
 
@@ -63,17 +71,42 @@ function LocationDetail() {
     }
   };
 
+  const toggleSpecial = (k: string) => {
+    setSelectedSpecial((s) => s.includes(k) ? s.filter((x) => x !== k) : [...s, k]);
+  };
+
   const reserve = async () => {
     if (!user || !loc) return nav({ to: "/auth" });
     const h = Number(hours) || 1;
     const total = h * loc.price_per_hour;
+
+    // Verifica documentos das vagas especiais selecionadas
+    const missingDocs = selectedSpecial.filter((k) => !specialDocs[k]);
+    if (missingDocs.length > 0) {
+      const labels = missingDocs.map((k) => SPECIAL_OPTIONS.find((o) => o.key === k)?.label ?? k).join(", ");
+      return toast.error(`Não é possível reservar vaga especial (${labels}). Envie a documentação no seu perfil.`);
+    }
+
+    // Verifica saldo
+    if (balance < total) {
+      return toast.error(`Saldo insuficiente. Você tem R$ ${balance.toFixed(2)} e a reserva custa R$ ${total.toFixed(2)}. Recarregue a carteira.`);
+    }
+
+    setReserving(true);
     const { error } = await supabase.from("reservations").insert({
       user_id: user.id, location_id: loc.id,
       start_time: new Date().toISOString(),
       duration_hours: h, total_price: total, status: "confirmed",
     });
-    if (error) return toast.error(error.message);
-    toast.success(`Vaga reservada! R$ ${total.toFixed(2)}`);
+    if (error) { setReserving(false); return toast.error(error.message); }
+
+    // Debita o saldo da carteira
+    const newBalance = balance - total;
+    const { error: wErr } = await supabase.from("wallets").update({ balance: newBalance }).eq("user_id", user.id);
+    setReserving(false);
+    if (wErr) return toast.error("Reserva criada, mas houve erro ao debitar saldo: " + wErr.message);
+    setBalance(newBalance);
+    toast.success(`Vaga reservada! R$ ${total.toFixed(2)} debitado da carteira.`);
     setReserveOpen(false);
     nav({ to: "/wallet" });
   };
