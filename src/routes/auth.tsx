@@ -58,6 +58,20 @@ function AuthPage() {
     nav({ to: "/" });
   };
 
+  const onForgot = async () => {
+    const target = email.trim();
+    if (!target || !/^\S+@\S+\.\S+$/.test(target)) {
+      return toast.error("Digite seu e-mail no campo acima e clique em 'Esqueci minha senha'.");
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(target, {
+      redirectTo: window.location.origin + "/reset-password",
+    });
+    setLoading(false);
+    if (error) return toast.error(translateAuthError(error.message));
+    toast.success("Enviamos um link de recuperação para o seu e-mail.");
+  };
+
   const onSignup = async (e: FormEvent) => {
     e.preventDefault();
     if (!allOk) {
