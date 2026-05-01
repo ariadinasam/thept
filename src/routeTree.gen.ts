@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SavedRouteImport } from './routes/saved'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PartnerRouteImport } from './routes/partner'
@@ -33,6 +34,11 @@ const SearchRoute = SearchRouteImport.update({
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/partner': typeof PartnerRoute
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/wallet': typeof WalletRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/partner': typeof PartnerRoute
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/wallet': typeof WalletRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/partner': typeof PartnerRoute
   '/partners': typeof PartnersRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/wallet': typeof WalletRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/partner'
     | '/partners'
     | '/profile'
+    | '/reset-password'
     | '/saved'
     | '/search'
     | '/wallet'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/partner'
     | '/partners'
     | '/profile'
+    | '/reset-password'
     | '/saved'
     | '/search'
     | '/wallet'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/partner'
     | '/partners'
     | '/profile'
+    | '/reset-password'
     | '/saved'
     | '/search'
     | '/wallet'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   PartnerRoute: typeof PartnerRoute
   PartnersRoute: typeof PartnersRoute
   ProfileRoute: typeof ProfileRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
   WalletRoute: typeof WalletRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/saved'
       fullPath: '/saved'
       preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartnerRoute: PartnerRoute,
   PartnersRoute: PartnersRoute,
   ProfileRoute: ProfileRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
   WalletRoute: WalletRoute,
