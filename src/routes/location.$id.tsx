@@ -10,11 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { availabilityStatus, getCategory } from "@/lib/categories";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, Navigation, Star, Heart, Clock, Accessibility } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Star, Heart, Clock, Accessibility, Wallet, AlertCircle } from "lucide-react";
+
+const SPECIAL_OPTIONS = [
+  { key: "pcd", label: "PCD" },
+  { key: "elderly", label: "Idoso" },
+  { key: "pregnant", label: "Gestante" },
+];
 
 export const Route = createFileRoute("/location/$id")({
   component: LocationDetail,
@@ -34,12 +41,20 @@ function LocationDetail() {
   const [saved, setSaved] = useState(false);
   const [hours, setHours] = useState("1");
   const [reserveOpen, setReserveOpen] = useState(false);
+  const [balance, setBalance] = useState<number>(0);
+  const [specialDocs, setSpecialDocs] = useState<Record<string, string>>({});
+  const [selectedSpecial, setSelectedSpecial] = useState<string[]>([]);
+  const [reserving, setReserving] = useState(false);
 
   useEffect(() => {
     supabase.from("parking_locations").select("*").eq("id", id).maybeSingle().then(({ data }) => setLoc(data as Loc | null));
     if (user) {
       supabase.from("saved_locations").select("id").eq("user_id", user.id).eq("location_id", id).maybeSingle()
         .then(({ data }) => setSaved(!!data));
+      supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle()
+        .then(({ data }) => { if (data) setBalance(Number(data.balance)); });
+      supabase.from("profiles").select("permission_documents").eq("id", user.id).maybeSingle()
+        .then(({ data }) => setSpecialDocs(((data?.permission_documents ?? {}) as Record<string, string>)));
     }
   }, [id, user]);
 
@@ -56,17 +71,42 @@ function LocationDetail() {
     }
   };
 
+  const toggleSpecial = (k: string) => {
+    setSelectedSpecial((s) => s.includes(k) ? s.filter((x) => x !== k) : [...s, k]);
+  };
+
   const reserve = async () => {
     if (!user || !loc) return nav({ to: "/auth" });
     const h = Number(hours) || 1;
     const total = h * loc.price_per_hour;
+
+    // Verifica documentos das vagas especiais selecionadas
+    const missingDocs = selectedSpecial.filter((k) => !specialDocs[k]);
+    if (missingDocs.length > 0) {
+      const labels = missingDocs.map((k) => SPECIAL_OPTIONS.find((o) => o.key === k)?.label ?? k).join(", ");
+      return toast.error(`Não é possível reservar vaga especial (${labels}). Envie a documentação no seu perfil.`);
+    }
+
+    // Verifica saldo
+    if (balance < total) {
+      return toast.error(`Saldo insuficiente. Você tem R$ ${balance.toFixed(2)} e a reserva custa R$ ${total.toFixed(2)}. Recarregue a carteira.`);
+    }
+
+    setReserving(true);
     const { error } = await supabase.from("reservations").insert({
       user_id: user.id, location_id: loc.id,
       start_time: new Date().toISOString(),
       duration_hours: h, total_price: total, status: "confirmed",
     });
-    if (error) return toast.error(error.message);
-    toast.success(`Vaga reservada! R$ ${total.toFixed(2)}`);
+    if (error) { setReserving(false); return toast.error(error.message); }
+
+    // Debita o saldo da carteira
+    const newBalance = balance - total;
+    const { error: wErr } = await supabase.from("wallets").update({ balance: newBalance }).eq("user_id", user.id);
+    setReserving(false);
+    if (wErr) return toast.error("Reserva criada, mas houve erro ao debitar saldo: " + wErr.message);
+    setBalance(newBalance);
+    toast.success(`Vaga reservada! R$ ${total.toFixed(2)} debitado da carteira.`);
     setReserveOpen(false);
     nav({ to: "/wallet" });
   };
@@ -146,21 +186,60 @@ function LocationDetail() {
                     <Clock className="h-4 w-4" /> {isFull ? "Sem vagas" : "Reservar vaga"}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Reservar em {loc.name}</DialogTitle></DialogHeader>
                   <div className="space-y-4">
                     <div>
                       <Label>Duração (horas)</Label>
                       <Input type="number" min="1" max="24" value={hours} onChange={(e) => setHours(e.target.value)} />
                     </div>
+
+                    <div>
+                      <Label className="mb-2 block">Vaga especial (opcional)</Label>
+                      <div className="space-y-2">
+                        {SPECIAL_OPTIONS.map((opt) => {
+                          const checked = selectedSpecial.includes(opt.key);
+                          const hasDoc = !!specialDocs[opt.key];
+                          return (
+                            <label key={opt.key} className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 bg-surface p-3 text-sm">
+                              <Checkbox checked={checked} onCheckedChange={() => toggleSpecial(opt.key)} />
+                              <span className="flex-1">{opt.label}</span>
+                              {checked && !hasDoc && (
+                                <span className="inline-flex items-center gap-1 text-xs text-destructive">
+                                  <AlertCircle className="h-3.5 w-3.5" /> Sem documento
+                                </span>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {selectedSpecial.some((k) => !specialDocs[k]) && (
+                        <p className="mt-2 flex items-start gap-1 text-xs text-destructive">
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          Não é possível reservar vaga especial sem o comprovante.{" "}
+                          <Link to="/profile" className="underline">Enviar documentação</Link>
+                        </p>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between rounded-xl border border-border/60 bg-surface p-4">
                       <span className="text-sm text-muted-foreground">Total</span>
                       <span className="font-display text-2xl font-bold text-primary">
                         R$ {((Number(hours) || 0) * loc.price_per_hour).toFixed(2)}
                       </span>
                     </div>
-                    <Button onClick={reserve} className="w-full bg-gradient-primary text-primary-foreground" size="lg">
-                      Confirmar reserva
+
+                    <div className="flex items-center justify-between rounded-lg bg-surface/60 px-3 py-2 text-xs">
+                      <span className="inline-flex items-center gap-1 text-muted-foreground">
+                        <Wallet className="h-3.5 w-3.5" /> Saldo na carteira
+                      </span>
+                      <span className={balance < (Number(hours) || 0) * loc.price_per_hour ? "font-semibold text-destructive" : "font-semibold text-foreground"}>
+                        R$ {balance.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <Button onClick={reserve} disabled={reserving} className="w-full bg-gradient-primary text-primary-foreground" size="lg">
+                      {reserving ? "Processando..." : "Confirmar e debitar da carteira"}
                     </Button>
                   </div>
                 </DialogContent>
