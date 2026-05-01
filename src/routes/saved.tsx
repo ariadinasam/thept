@@ -78,7 +78,7 @@ function SavedPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-3xl font-bold">Locais salvos</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Seus parceiros favoritos para acesso rápido.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Seus locais favoritos para acesso rápido.</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -91,7 +91,7 @@ function SavedPage() {
               <div className="space-y-3">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar parceiro..." className="pl-9" />
+                  <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome ou endereço..." className="pl-9" />
                 </div>
                 <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">
                   {filteredAvail.map((a) => {
