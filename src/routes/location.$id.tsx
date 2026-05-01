@@ -186,21 +186,60 @@ function LocationDetail() {
                     <Clock className="h-4 w-4" /> {isFull ? "Sem vagas" : "Reservar vaga"}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Reservar em {loc.name}</DialogTitle></DialogHeader>
                   <div className="space-y-4">
                     <div>
                       <Label>Duração (horas)</Label>
                       <Input type="number" min="1" max="24" value={hours} onChange={(e) => setHours(e.target.value)} />
                     </div>
+
+                    <div>
+                      <Label className="mb-2 block">Vaga especial (opcional)</Label>
+                      <div className="space-y-2">
+                        {SPECIAL_OPTIONS.map((opt) => {
+                          const checked = selectedSpecial.includes(opt.key);
+                          const hasDoc = !!specialDocs[opt.key];
+                          return (
+                            <label key={opt.key} className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 bg-surface p-3 text-sm">
+                              <Checkbox checked={checked} onCheckedChange={() => toggleSpecial(opt.key)} />
+                              <span className="flex-1">{opt.label}</span>
+                              {checked && !hasDoc && (
+                                <span className="inline-flex items-center gap-1 text-xs text-destructive">
+                                  <AlertCircle className="h-3.5 w-3.5" /> Sem documento
+                                </span>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {selectedSpecial.some((k) => !specialDocs[k]) && (
+                        <p className="mt-2 flex items-start gap-1 text-xs text-destructive">
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          Não é possível reservar vaga especial sem o comprovante.{" "}
+                          <Link to="/profile" className="underline">Enviar documentação</Link>
+                        </p>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between rounded-xl border border-border/60 bg-surface p-4">
                       <span className="text-sm text-muted-foreground">Total</span>
                       <span className="font-display text-2xl font-bold text-primary">
                         R$ {((Number(hours) || 0) * loc.price_per_hour).toFixed(2)}
                       </span>
                     </div>
-                    <Button onClick={reserve} className="w-full bg-gradient-primary text-primary-foreground" size="lg">
-                      Confirmar reserva
+
+                    <div className="flex items-center justify-between rounded-lg bg-surface/60 px-3 py-2 text-xs">
+                      <span className="inline-flex items-center gap-1 text-muted-foreground">
+                        <Wallet className="h-3.5 w-3.5" /> Saldo na carteira
+                      </span>
+                      <span className={balance < (Number(hours) || 0) * loc.price_per_hour ? "font-semibold text-destructive" : "font-semibold text-foreground"}>
+                        R$ {balance.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <Button onClick={reserve} disabled={reserving} className="w-full bg-gradient-primary text-primary-foreground" size="lg">
+                      {reserving ? "Processando..." : "Confirmar e debitar da carteira"}
                     </Button>
                   </div>
                 </DialogContent>
