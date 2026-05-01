@@ -30,11 +30,14 @@ function ProfilePage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ full_name: "", phone: "", car_plate: "", car_model: "", special_permissions: [] as string[] });
+  const [form, setForm] = useState({ full_name: "", phone: "", car_plate: "", car_model: "", special_permissions: [] as string[], avatar_url: "" });
   const [docs, setDocs] = useState<DocsMap>({});
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [pwd, setPwd] = useState({ next: "", confirm: "" });
   const [pwdSaving, setPwdSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
