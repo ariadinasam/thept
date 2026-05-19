@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { getMapboxToken } from "@/server/config.functions";
+import { getMapboxToken } from "@/lib/config.functions";
 
 export interface MapMarker {
   id: string;
