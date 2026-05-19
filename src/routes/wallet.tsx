@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { topUpWallet } from "@/lib/wallet.functions";
 import { toast } from "sonner";
 import { CreditCard, Plus, Wallet, Trash2, Loader2, QrCode, Banknote, Check } from "lucide-react";
 
