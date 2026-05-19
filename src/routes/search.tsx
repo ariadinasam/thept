@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { reserveAndDebit } from "@/lib/wallet.functions";
 import { gpsLinks } from "@/lib/geocode";
 import { useAuth } from "@/hooks/useAuth";
 import { availabilityStatus } from "@/lib/categories";
