@@ -89,16 +89,16 @@ function SearchResult() {
     if (!user) return nav({ to: "/auth" });
     if (!selected) return;
     const h = Number(hours) || 1;
-    const total = h * selected.price_per_hour;
-    const { error } = await supabase.from("reservations").insert({
-      user_id: user.id, location_id: selected.id,
-      start_time: new Date().toISOString(),
-      duration_hours: h, total_price: total, status: "confirmed",
-    });
-    if (error) return toast.error(error.message);
-    toast.success(`Vaga reservada em ${selected.name}! R$ ${total.toFixed(2)}`);
-    setReserveOpen(false);
-    nav({ to: "/wallet" });
+    try {
+      const res = await reserveAndDebit({
+        data: { locationId: selected.id, durationHours: h },
+      });
+      toast.success(`Vaga reservada em ${selected.name}! R$ ${res.total.toFixed(2)} debitado.`);
+      setReserveOpen(false);
+      nav({ to: "/wallet" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao reservar");
+    }
   };
 
   return (
