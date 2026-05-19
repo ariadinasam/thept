@@ -13,7 +13,7 @@ O **THEPT** nasceu de um problema real e puramente urbano: o estresse, o tempo p
 O ecossistema do **THEPT** foi arquitetado para cobrir toda a jornada do motorista:
 
 1. **Busca Inteligente e Direta**
-   * Interface responsiva de pesquisa integrada para encontrar vagas por endereço, CEP ou nome do local (Ex: *Av. Paulista, Shopping Iguatemi, Hospitais*).
+   * Interface responsiva de pesquisa integrada para encontrar vagas por endereço, CEP ou nome do local (Ex: *Restaurantes, Shopping Iguatemi, Hospitais*).
 2. **Mapa de Vagas e Tempo Real**
    * Painel de monitoramento visual que simula a disponibilidade constante de locais parceiros.
 3. **Navegação Integrada com Um Toque (Deep Linking)**
@@ -37,12 +37,6 @@ Como dev, a escolha da abordagem técnica foi estritamente estratégica para ent
 
 ---
 
-## 🗺️ Fluxo Logístico do Sistema
-[ Busca de Local ] ➔ [ Painel do Mapa ] ➔ [ Seleção de Vagas (Regulares/Especiais) ]
-↓
-[ Rota no Maps/Waze ] 🡠 [ Confirmação / Check-in ] 🡠 [ Reserva da Vaga ]
-
----
 
 ## 🚀 Como Visualizar o Projeto
 
