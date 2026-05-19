@@ -1,6 +1,6 @@
 // Geocoding helpers — supports CEP (ViaCEP) and free-text via Mapbox.
 
-import { getMapboxToken } from "@/server/config.functions";
+import { getMapboxToken } from "@/lib/config.functions";
 
 export interface GeocodeResult {
   name: string;
