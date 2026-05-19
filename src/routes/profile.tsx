@@ -70,7 +70,13 @@ function ProfilePage() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ ...form, permission_documents: docs }).eq("id", user.id);
+    // Note: special_permissions are managed server-side based on uploaded documents;
+    // the client cannot self-assign them.
+    const { full_name, phone, car_plate, car_model, avatar_url } = form;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name, phone, car_plate, car_model, avatar_url, permission_documents: docs })
+      .eq("id", user.id);
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Perfil atualizado!");

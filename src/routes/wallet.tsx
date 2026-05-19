@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { topUpWallet } from "@/lib/wallet.functions";
 import { toast } from "sonner";
 import { CreditCard, Plus, Wallet, Trash2, Loader2, QrCode, Banknote, Check } from "lucide-react";
 
@@ -136,12 +137,17 @@ function WalletPage() {
 
   const creditBalance = async (amount: number) => {
     if (!user) return;
-    const { error } = await supabase.from("wallets").update({ balance: balance + amount }).eq("user_id", user.id);
-    if (error) { toast.error(error.message); setPayStep("select"); return; }
-    toast.success(`R$ ${amount.toFixed(2)} adicionado à carteira!`);
-    setTopupOpen(false);
-    resetTopup();
-    refresh();
+    try {
+      const res = await topUpWallet({ data: { amount } });
+      setBalance(Number(res.balance));
+      toast.success(`R$ ${amount.toFixed(2)} adicionado à carteira!`);
+      setTopupOpen(false);
+      resetTopup();
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao creditar saldo");
+      setPayStep("select");
+    }
   };
 
   if (!user) return null;

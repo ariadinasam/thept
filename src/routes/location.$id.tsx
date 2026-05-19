@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { reserveAndDebit } from "@/lib/wallet.functions";
 import { availabilityStatus, getCategory } from "@/lib/categories";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, Navigation, Star, Heart, Clock, Accessibility, Wallet, AlertCircle } from "lucide-react";
@@ -78,37 +79,32 @@ function LocationDetail() {
   const reserve = async () => {
     if (!user || !loc) return nav({ to: "/auth" });
     const h = Number(hours) || 1;
-    const total = h * loc.price_per_hour;
 
-    // Verifica documentos das vagas especiais selecionadas
+    // Pre-check (UX) — server enforces these authoritatively
     const missingDocs = selectedSpecial.filter((k) => !specialDocs[k]);
     if (missingDocs.length > 0) {
       const labels = missingDocs.map((k) => SPECIAL_OPTIONS.find((o) => o.key === k)?.label ?? k).join(", ");
       return toast.error(`Não é possível reservar vaga especial (${labels}). Envie a documentação no seu perfil.`);
     }
 
-    // Verifica saldo
-    if (balance < total) {
-      return toast.error(`Saldo insuficiente. Você tem R$ ${balance.toFixed(2)} e a reserva custa R$ ${total.toFixed(2)}. Recarregue a carteira.`);
-    }
-
     setReserving(true);
-    const { error } = await supabase.from("reservations").insert({
-      user_id: user.id, location_id: loc.id,
-      start_time: new Date().toISOString(),
-      duration_hours: h, total_price: total, status: "confirmed",
-    });
-    if (error) { setReserving(false); return toast.error(error.message); }
-
-    // Debita o saldo da carteira
-    const newBalance = balance - total;
-    const { error: wErr } = await supabase.from("wallets").update({ balance: newBalance }).eq("user_id", user.id);
-    setReserving(false);
-    if (wErr) return toast.error("Reserva criada, mas houve erro ao debitar saldo: " + wErr.message);
-    setBalance(newBalance);
-    toast.success(`Vaga reservada! R$ ${total.toFixed(2)} debitado da carteira.`);
-    setReserveOpen(false);
-    nav({ to: "/wallet" });
+    try {
+      const res = await reserveAndDebit({
+        data: {
+          locationId: loc.id,
+          durationHours: h,
+          specialPermissions: selectedSpecial as ("pcd" | "elderly" | "pregnant")[],
+        },
+      });
+      setBalance(Number(res.balance));
+      toast.success(`Vaga reservada! R$ ${res.total.toFixed(2)} debitado da carteira.`);
+      setReserveOpen(false);
+      nav({ to: "/wallet" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao reservar");
+    } finally {
+      setReserving(false);
+    }
   };
 
   if (!loc) {
