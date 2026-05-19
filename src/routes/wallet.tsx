@@ -137,12 +137,17 @@ function WalletPage() {
 
   const creditBalance = async (amount: number) => {
     if (!user) return;
-    const { error } = await supabase.from("wallets").update({ balance: balance + amount }).eq("user_id", user.id);
-    if (error) { toast.error(error.message); setPayStep("select"); return; }
-    toast.success(`R$ ${amount.toFixed(2)} adicionado à carteira!`);
-    setTopupOpen(false);
-    resetTopup();
-    refresh();
+    try {
+      const res = await topUpWallet({ data: { amount } });
+      setBalance(Number(res.balance));
+      toast.success(`R$ ${amount.toFixed(2)} adicionado à carteira!`);
+      setTopupOpen(false);
+      resetTopup();
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao creditar saldo");
+      setPayStep("select");
+    }
   };
 
   if (!user) return null;
