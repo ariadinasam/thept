@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { reserveAndDebit } from "@/lib/wallet.functions";
 import { availabilityStatus, getCategory } from "@/lib/categories";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, Navigation, Star, Heart, Clock, Accessibility, Wallet, AlertCircle } from "lucide-react";
