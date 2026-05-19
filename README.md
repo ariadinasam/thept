@@ -52,7 +52,7 @@ A aplicação está publicada e totalmente interativa no endereço:
 
 ---
 
-## 🏆 Diferenciais Competitivos (Para a Banca/Jurados)
+## 🏆 Diferenciais
 
 * **Acessibilidade First-Class:** O tratamento para vagas PCD e idosos não é um detalhe estético, mas um fluxo core do app.
 * **Flexibilidade de Navegação:** O usuário escolhe o ecossistema de mapas de sua preferência (Waze ou Maps).
