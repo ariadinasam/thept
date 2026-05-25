@@ -17,8 +17,10 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "THEPT — Encontre vagas perto de você" },
-      { name: "description", content: "Busque por endereço ou CEP e descubra estacionamentos disponíveis em tempo real." },
+      { title: "THEPT — Encontre vagas de estacionamento em Fortaleza-CE" },
+      { name: "description", content: "Busque por endereço, CEP ou nome do local e descubra estacionamentos disponíveis em tempo real em Fortaleza-CE." },
+      { property: "og:title", content: "THEPT — Vagas em tempo real em Fortaleza-CE" },
+      { property: "og:description", content: "Encontre, reserve e pague seu estacionamento direto pelo app." },
     ],
   }),
   component: HomePage,
@@ -131,7 +133,7 @@ function HomePage() {
             <Sparkles className="h-3.5 w-3.5" /> Vagas em tempo real
           </div>
           <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
-            Tem vaga <span className="text-gradient">lá</span>?
+            Tem vaga <span className="text-gradient">lá</span>? <span className="sr-only">— Encontre vagas de estacionamento em tempo real em Fortaleza-CE</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
             Digite o endereço, CEP ou nome do local. Reserve, pague e siga.
@@ -142,6 +144,8 @@ function HomePage() {
               <div className="flex flex-1 items-center gap-2 px-3">
                 <Search className="h-5 w-5 text-muted-foreground" />
                 <Input
+                  id="home-search"
+                  aria-label="Buscar endereço, CEP ou nome do local"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Endereço, CEP (01310-100) ou nome do lugar"
