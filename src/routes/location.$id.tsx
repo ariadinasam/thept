@@ -25,6 +25,14 @@ const SPECIAL_OPTIONS = [
 ];
 
 export const Route = createFileRoute("/location/$id")({
+  head: ({ params }) => ({
+    meta: [
+      { title: `Estacionamento ${params.id} — Reserve no THEPT` },
+      { name: "description", content: "Veja disponibilidade, preço por hora e reserve sua vaga neste estacionamento em Fortaleza-CE." },
+      { property: "og:title", content: "Reserve sua vaga — THEPT" },
+      { property: "og:description", content: "Disponibilidade em tempo real e reserva direta pelo app." },
+    ],
+  }),
   component: LocationDetail,
 });
 
@@ -143,7 +151,7 @@ function LocationDetail() {
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={toggleSave}>
+              <Button variant="ghost" size="icon" onClick={toggleSave} aria-label={saved ? "Remover dos favoritos" : "Salvar nos favoritos"}>
                 <Heart className={`h-5 w-5 ${saved ? "fill-destructive text-destructive" : ""}`} />
               </Button>
             </div>
@@ -186,8 +194,8 @@ function LocationDetail() {
                   <DialogHeader><DialogTitle>Reservar em {loc.name}</DialogTitle></DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Duração (horas)</Label>
-                      <Input type="number" min="1" max="24" value={hours} onChange={(e) => setHours(e.target.value)} />
+                      <Label htmlFor="reserve-hours">Duração (horas)</Label>
+                      <Input id="reserve-hours" type="number" min="1" max="24" value={hours} onChange={(e) => setHours(e.target.value)} />
                     </div>
 
                     <div>

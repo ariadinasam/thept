@@ -55,7 +55,7 @@ export function Header() {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="md:hidden">
+                  <Button variant="ghost" size="sm" className="md:hidden" aria-label="Abrir menu">
                     <Menu className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>

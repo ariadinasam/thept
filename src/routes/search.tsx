@@ -33,6 +33,8 @@ export const Route = createFileRoute("/search")({
     meta: [
       { title: "Resultado da busca — THEPT" },
       { name: "description", content: "Veja vagas disponíveis perto do endereço buscado e reserve em segundos." },
+      { property: "og:title", content: "Vagas próximas — THEPT" },
+      { property: "og:description", content: "Reserve a vaga mais próxima do seu destino." },
     ],
   }),
   component: SearchResult,
@@ -177,8 +179,8 @@ function SearchResult() {
                   <DialogHeader><DialogTitle>Reservar em {selected?.name}</DialogTitle></DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Duração (horas)</Label>
-                      <Input type="number" min="1" max="24" value={hours} onChange={(e) => setHours(e.target.value)} />
+                      <Label htmlFor="search-hours">Duração (horas)</Label>
+                      <Input id="search-hours" type="number" min="1" max="24" value={hours} onChange={(e) => setHours(e.target.value)} />
                     </div>
                     <div className="flex items-center justify-between rounded-xl border border-border/60 bg-surface p-4">
                       <span className="text-sm text-muted-foreground">Total</span>
