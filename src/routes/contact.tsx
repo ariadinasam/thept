@@ -13,7 +13,14 @@ import { Mail, Instagram } from "lucide-react";
 import { z } from "zod";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({ meta: [{ title: "Contato — THEPT" }] }),
+  head: () => ({
+    meta: [
+      { title: "Contato — THEPT" },
+      { name: "description", content: "Fale com a equipe THEPT: dúvidas, sugestões e suporte sobre vagas de estacionamento em Fortaleza-CE." },
+      { property: "og:title", content: "Contato — THEPT" },
+      { property: "og:description", content: "Estamos aqui para ajudar com sua reserva de vagas." },
+    ],
+  }),
   component: ContactPage,
 });
 
@@ -58,21 +65,21 @@ function ContactPage() {
           <form onSubmit={submit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Nome *</Label>
-                <Input required maxLength={120} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Label htmlFor="contact-name">Nome *</Label>
+                <Input id="contact-name" required maxLength={120} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div>
-                <Label>E-mail *</Label>
-                <Input type="email" required maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Label htmlFor="contact-email">E-mail *</Label>
+                <Input id="contact-email" type="email" required maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
             </div>
             <div>
-              <Label>Assunto</Label>
-              <Input maxLength={120} value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
+              <Label htmlFor="contact-subject">Assunto</Label>
+              <Input id="contact-subject" maxLength={120} value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
             </div>
             <div>
-              <Label>Mensagem *</Label>
-              <Textarea required maxLength={1000} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} rows={5} />
+              <Label htmlFor="contact-message">Mensagem *</Label>
+              <Textarea id="contact-message" required maxLength={1000} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} rows={5} />
             </div>
             <Button type="submit" disabled={submitting} className="w-full bg-gradient-primary text-primary-foreground" size="lg">
               {submitting ? "Enviando..." : "Enviar mensagem"}

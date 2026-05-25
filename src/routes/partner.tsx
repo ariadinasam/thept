@@ -13,7 +13,14 @@ import { Handshake } from "lucide-react";
 import { z } from "zod";
 
 export const Route = createFileRoute("/partner")({
-  head: () => ({ meta: [{ title: "Seja Parceiro — THEPT" }] }),
+  head: () => ({
+    meta: [
+      { title: "Seja Parceiro — THEPT" },
+      { name: "description", content: "Cadastre seu estabelecimento na rede THEPT em Fortaleza-CE e atraia mais clientes oferecendo vagas reserváveis." },
+      { property: "og:title", content: "Seja parceiro — THEPT" },
+      { property: "og:description", content: "Coloque suas vagas no app e ganhe novos clientes." },
+    ],
+  }),
   component: PartnerPage,
 });
 
@@ -60,36 +67,36 @@ function PartnerPage() {
         <Card className="border-border/60 bg-gradient-card p-6">
           <form onSubmit={submit} className="space-y-4">
             <div>
-              <Label>Nome do estabelecimento *</Label>
-              <Input required maxLength={120} value={form.business_name} onChange={(e) => setForm({ ...form, business_name: e.target.value })} />
+              <Label htmlFor="partner-business">Nome do estabelecimento *</Label>
+              <Input id="partner-business" required maxLength={120} value={form.business_name} onChange={(e) => setForm({ ...form, business_name: e.target.value })} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Responsável *</Label>
-                <Input required maxLength={120} value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} />
+                <Label htmlFor="partner-contact">Responsável *</Label>
+                <Input id="partner-contact" required maxLength={120} value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} />
               </div>
               <div>
-                <Label>E-mail *</Label>
-                <Input type="email" required maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Label htmlFor="partner-email">E-mail *</Label>
+                <Input id="partner-email" type="email" required maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Telefone</Label>
-                <Input maxLength={30} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+                <Label htmlFor="partner-phone">Telefone</Label>
+                <Input id="partner-phone" maxLength={30} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
               </div>
               <div>
-                <Label>Categoria</Label>
-                <Input maxLength={60} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Restaurante, clínica..." />
+                <Label htmlFor="partner-category">Categoria</Label>
+                <Input id="partner-category" maxLength={60} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Restaurante, clínica..." />
               </div>
             </div>
             <div>
-              <Label>Endereço</Label>
-              <Input maxLength={255} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              <Label htmlFor="partner-address">Endereço</Label>
+              <Input id="partner-address" maxLength={255} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </div>
             <div>
-              <Label>Mensagem</Label>
-              <Textarea maxLength={1000} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Quantas vagas tem? Conte-nos sobre seu estabelecimento..." rows={4} />
+              <Label htmlFor="partner-message">Mensagem</Label>
+              <Textarea id="partner-message" maxLength={1000} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Quantas vagas tem? Conte-nos sobre seu estabelecimento..." rows={4} />
             </div>
             <Button type="submit" disabled={submitting} className="w-full bg-gradient-primary text-primary-foreground" size="lg">
               {submitting ? "Enviando..." : "Enviar cadastro"}

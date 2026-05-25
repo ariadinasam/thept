@@ -11,7 +11,9 @@ export const Route = createFileRoute("/partners")({
   head: () => ({
     meta: [
       { title: "Parceiros — THEPT" },
-      { name: "description", content: "Restaurantes, clínicas, shoppings e entretenimento parceiros com vagas garantidas." },
+      { name: "description", content: "Restaurantes, clínicas, shoppings e entretenimento parceiros em Fortaleza-CE com vagas garantidas." },
+      { property: "og:title", content: "Parceiros THEPT em Fortaleza-CE" },
+      { property: "og:description", content: "Vagas garantidas em restaurantes, clínicas, shoppings e mais." },
     ],
   }),
   component: PartnersPage,
