@@ -1,0 +1,12 @@
+# THEPT
+
+> Tem vaga lá? Encontre e reserve vagas de estacionamento em tempo real em Fortaleza-CE.
+
+THEPT mostra disponibilidade ao vivo em estabelecimentos parceiros (restaurantes, clínicas, shoppings, hospitais e mais), permite reservar a vaga, pagar via carteira e abrir a navegação direto no Waze ou Google Maps. Também oferece suporte a vagas especiais (PCD, idoso e gestante) com verificação de documentação.
+
+## Pages
+
+- [Início](/): Buscar vagas por endereço, CEP ou nome do local.
+- [Parceiros](/partners): Lista de estabelecimentos parceiros por categoria.
+- [Seja parceiro](/partner): Cadastre seu estabelecimento na rede THEPT.
+- [Contato](/contact): Fale com a equipe.
